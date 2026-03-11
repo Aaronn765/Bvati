@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BVATI Productions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;600;900&family=Raleway:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #E8C870;
+            --steel: #4A7BA8;
+            --steel-dark: #2C5F82;
+            --dark: #080808;
+            --darker: #030303;
+            --white: #F5F0E8;
+            --gray: #8A8A8A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html.lenis,
+        html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--darker);
+            color: var(--white);
+            font-family: 'Raleway', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9997;
+            opacity: 0.6;
+            mix-blend-mode: overlay;
+        }
+
+
+
+        /* ---- HERO ---- */
+        #hero {
+            position: relative;
+            height: 100vh;
+            min-height: 700px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #three-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(8, 8, 8, 0.85) 0%, rgba(8, 8, 8, 0.4) 50%, rgba(8, 8, 8, 0.85) 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .hero-tagline {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 10vw, 8rem);
+            line-height: 0.9;
+            letter-spacing: 0.05em;
+            color: var(--white);
+            opacity: 1;
+            /* Initialized by GSAP instead */
+            visibility: hidden;
+        }
+
+        .hero-tagline span {
+            color: var(--gold);
+            display: block;
+        }
+
+
+
+        .hero-sub {
+            font-size: 1rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-top: 20px;
+            opacity: 0;
+        }
+
+        .hero-cta {
+            margin-top: 50px;
+            opacity: 0;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 16px 44px;
+            background: var(--gold);
+            color: var(--dark);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.15em;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: var(--gold-light);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(201, 168, 76, 0.4);
+        }
+
+        .btn-outline {
+            padding: 15px 44px;
+            background: transparent;
+            color: var(--white);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.15em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+            display: inline-block;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            transform: translateY(-3px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--gold), transparent);
+            animation: scrollPulse 2s ease infinite;
+        }
+
+        @keyframes scrollPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scaleY(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scaleY(0.6);
+            }
+        }
+
+
+
+        /* ---- NAV ---- */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.4s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(3, 3, 3, 0.95);
+            padding: 14px 60px;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+        }
+
+        .nav-logo {
+            width: 80px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.75rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--white);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* ---- SECTION BASE ---- */
+        section {
+            padding: 120px 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .section-label::before {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 1px;
+            background: var(--gold);
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            line-height: 1.1;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        /* ---- ABOUT ---- */
+        #about {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 100px;
+            align-items: center;
+        }
+
+        .about-text p {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: rgba(245, 240, 232, 0.7);
+            margin-bottom: 24px;
+        }
+
+        .about-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            margin-top: 50px;
+        }
+
+        .stat-block {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(201, 168, 76, 0.15);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .stat-block::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(201, 168, 76, 0.05) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .stat-block:hover::before {
+            opacity: 1;
+        }
+
+        .stat-block:hover {
+            border-color: rgba(201, 168, 76, 0.4);
+        }
+
+        .stat-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.5rem;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-top: 8px;
+        }
+
+        .about-visual {
+            position: relative;
+        }
+
+        /* ---- CLAPPERBOARD ---- */
+        .clapper {
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            filter: grayscale(1) contrast(1.1);
+        }
+
+        .clapper-top-part {
+            position: relative;
+            height: 50px;
+            background: #111;
+            border-radius: 6px 6px 0 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            border: 2px solid #444;
+            border-bottom: none;
+            transform-origin: bottom left;
+            transform: rotate(-15deg);
+            margin-bottom: -2px;
+            margin-left: 2px;
+        }
+
+        .clapper-stripe-bar {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .clapper-stripe-bar div {
+            width: 30px;
+            height: 100%;
+            background: #ddd;
+            margin-left: 30px;
+            transform: skewX(-25deg);
+        }
+
+        .clapper-body {
+            background: #111;
+            border: 2px solid #444;
+            border-radius: 0 0 6px 6px;
+            padding: 25px 20px;
+            position: relative;
+        }
+
+        .clapper-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #444;
+        }
+
+        .clapper-row {
+            display: flex;
+            justify-content: space-between;
+            color: #ccc;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 6px;
+        }
+
+        .clapper-row span:last-child {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .clapper-title {
+            text-align: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: #fff;
+            letter-spacing: 4px;
+            margin-top: 12px;
+        }
+
+        /* ---- SERVICES ---- */
+        #services {
+            background: rgba(0, 0, 0, 0.4);
+            max-width: 100%;
+        }
+
+        #services-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 60px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin-top: 60px;
+        }
+
+        .service-card {
+            position: relative;
+            aspect-ratio: 3/4;
+            overflow: hidden;
+            cursor: pointer;
+            group: '';
+        }
+
+        .service-bg {
+            position: absolute;
+            inset: 0;
+            transition: transform 0.6s ease;
+        }
+
+        .service-card:nth-child(1) .service-bg {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d1f0e 100%);
+        }
+
+        .service-card:nth-child(2) .service-bg {
+            background: linear-gradient(135deg, #0a0f1a 0%, #0d2135 100%);
+        }
+
+        .service-card:nth-child(3) .service-bg {
+            background: linear-gradient(135deg, #1a0a1a 0%, #2d0d2d 100%);
+        }
+
+        .service-card:hover .service-bg {
+            transform: scale(1.05);
+        }
+
+        .service-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+
+        .service-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 40px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, transparent 100%);
+            z-index: 2;
+        }
+
+        .service-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 5rem;
+            color: rgba(201, 168, 76, 0.1);
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            line-height: 1;
+            z-index: 2;
+        }
+
+        .service-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 0.05em;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        .service-desc {
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: rgba(245, 240, 232, 0.7);
+        }
+
+        .service-line {
+            width: 40px;
+            height: 2px;
+            background: var(--gold);
+            margin-bottom: 16px;
+            transition: width 0.4s ease;
+        }
+
+        .service-card:hover .service-line {
+            width: 80px;
+        }
+
+        /* ---- PRODUCTIONS ---- */
+        .productions-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .productions-tabs {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            margin-bottom: 50px;
+        }
+
+        .tab {
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active,
+        .tab:hover {
+            background: var(--gold);
+            color: var(--dark);
+            border-color: var(--gold);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .productions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3px;
+        }
+
+        .prod-item {
+            aspect-ratio: 2/3;
+            background: var(--dark);
+            border: 1px solid rgba(201, 168, 76, 0.1);
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .prod-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.3;
+            transition: opacity 0.4s, transform 0.6s;
+        }
+
+        .prod-item:hover .prod-bg {
+            opacity: 0.6;
+            transform: scale(1.1);
+        }
+
+        .prod-bg.c1 {
+            background: url("PECHE D'AMOUR.jpeg") center/cover no-repeat;
+        }
+
+        .prod-bg.c2 {
+            background: url("A NOS VIES.jpeg") center/cover no-repeat;
+        }
+
+        .prod-bg.c3 {
+            background: url("INFIDELES.jpeg") center/cover no-repeat;
+        }
+
+        .prod-bg.c4 {
+            background: url("CONNIVENCES.jpeg") center/cover no-repeat;
+        }
+
+        .prod-bg.c5 {
+            background: linear-gradient(135deg, #1a472a, #2d6a4f, #52b788);
+        }
+
+        .prod-bg.c6 {
+            background: url("MEILLEURS AMIS.jpeg") center/cover no-repeat;
+        }
+
+        .prod-bg.c7 {
+            background: url("L'AUBE DES COEURS BRISES.jpeg") center/cover no-repeat;
+        }
+
+        .prod-bg.c8 {
+            background: url("ANITA.jpeg") center/cover no-repeat;
+        }
+
+        .prod-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 0.08em;
+            color: var(--white);
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .prod-type {
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        /* ---- MISSION/VISION ---- */
+        #values {
+            background: rgba(0, 0, 0, 0.5);
+            max-width: 100%;
+            padding: 120px 0;
+        }
+
+        #values-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 60px;
+        }
+
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin-top: 60px;
+        }
+
+        .value-card {
+            padding: 50px 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(201, 168, 76, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .value-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 0;
+            background: var(--gold);
+            transition: height 0.4s ease;
+        }
+
+        .value-card:hover::before {
+            height: 100%;
+        }
+
+        .value-card:hover {
+            background: rgba(201, 168, 76, 0.04);
+            border-color: rgba(201, 168, 76, 0.3);
+        }
+
+        .value-icon {
+            font-size: 2.5rem;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        .value-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            color: var(--gold);
+            margin-bottom: 16px;
+        }
+
+        .value-text {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: rgba(245, 240, 232, 0.6);
+        }
+
+        /* ---- CONTACT ---- */
+        #contact {
+            text-align: center;
+            padding: 120px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #contact-bg-text {
+            position: absolute;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 30vw;
+            color: rgba(201, 168, 76, 0.035);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            z-index: 0;
+            will-change: transform;
+        }
+
+        .contact-grid {
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin: 60px 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .contact-item {
+            padding: 40px 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(201, 168, 76, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            background: rgba(201, 168, 76, 0.05);
+            border-color: rgba(201, 168, 76, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .contact-icon {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .contact-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .contact-value {
+            font-size: 0.95rem;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        /* ---- FOOTER ---- */
+        footer {
+            border-top: 1px solid rgba(201, 168, 76, 0.15);
+            padding: 40px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-copy {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            color: var(--gray);
+        }
+
+        .footer-logo {
+            width: 60px;
+            opacity: 0.7;
+        }
+
+        /* ---- REVEAL ANIMATIONS ---- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 {
+            transition-delay: 0.15s;
+        }
+
+        .reveal-delay-2 {
+            transition-delay: 0.3s;
+        }
+
+        .reveal-delay-3 {
+            transition-delay: 0.45s;
+        }
+
+        /* ---- FILM GRAIN ---- */
+        .grain {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 200;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            animation: grain 0.5s steps(2) infinite;
+        }
+
+        @keyframes grain {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            10% {
+                transform: translate(-1%, -1%);
+            }
+
+            20% {
+                transform: translate(1%, 1%);
+            }
+
+            30% {
+                transform: translate(-1%, 1%);
+            }
+
+            40% {
+                transform: translate(1%, -1%);
+            }
+
+            50% {
+                transform: translate(-1%, 0);
+            }
+
+            60% {
+                transform: translate(1%, 0);
+            }
+
+            70% {
+                transform: translate(0, 1%);
+            }
+
+            80% {
+                transform: translate(0, -1%);
+            }
+
+            90% {
+                transform: translate(1%, 1%);
+            }
+        }
+
+        /* ---- SEPARATOR ---- */
+        .sep {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(201, 168, 76, 0.3), transparent);
+            margin: 0 60px;
+        }
+
+        /* ---- HAMBURGER ---- */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 9999;
+            padding: 5px;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 28px;
+            height: 2px;
+            background: var(--gold);
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* ---- MOBILE ---- */
+        @media (max-width: 900px) {
+            nav {
+                padding: 16px 20px;
+            }
+
+            nav.scrolled {
+                padding: 12px 20px;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .nav-links {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: #000000;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 30px;
+                z-index: 9998;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links li {
+                list-style: none;
+            }
+
+            .nav-links.open a {
+                font-size: 1.8rem;
+                letter-spacing: 4px;
+            }
+
+            .nav-logo {
+                height: 30px;
+            }
+
+            /* Hero */
+            #hero {
+                min-height: 100vh;
+                min-height: 100dvh;
+            }
+
+            .hero-content {
+                padding: 0 15px;
+            }
+
+            .hero-content h1.hero-tagline {
+                font-size: clamp(2.2rem, 10vw, 4rem) !important;
+                letter-spacing: 3px !important;
+            }
+
+            .hero-content h2 {
+                font-size: clamp(0.95rem, 4vw, 1.4rem) !important;
+            }
+
+            .hero-sub {
+                font-size: 0.75rem !important;
+                letter-spacing: 0.2em !important;
+                white-space: nowrap;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px !important;
+                margin-top: 30px !important;
+            }
+
+            .btn-primary,
+            .btn-outline {
+                width: 80%;
+                text-align: center;
+                padding: 14px 30px !important;
+                font-size: 0.95rem !important;
+            }
+
+            /* Sections */
+            section {
+                padding: 60px 15px;
+            }
+
+            .section-title {
+                font-size: clamp(1.8rem, 6vw, 2.5rem) !important;
+            }
+
+            .section-label {
+                font-size: 0.7rem;
+            }
+
+            /* About */
+            #about {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .about-visual {
+                display: none;
+            }
+
+            /* Services */
+            #services {
+                padding: 60px 15px !important;
+            }
+
+            #services-inner {
+                padding: 0 !important;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .service-card {
+                aspect-ratio: unset;
+                min-height: 250px;
+            }
+
+            .service-name {
+                font-size: 1.4rem !important;
+            }
+
+            .service-desc {
+                font-size: 0.85rem;
+            }
+
+            /* Productions */
+            .productions-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+                padding: 0 10px;
+            }
+
+            .prod-item {
+                aspect-ratio: 3/4 !important;
+            }
+
+            .prod-title {
+                font-size: 0.85rem !important;
+            }
+
+            .prod-type {
+                font-size: 0.6rem !important;
+            }
+
+            .productions-tabs {
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .tab {
+                font-size: 0.8rem;
+                padding: 8px 16px;
+            }
+
+            /* Values */
+            #values {
+                padding: 60px 15px !important;
+            }
+
+            .values-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .value-card {
+                padding: 25px 20px;
+            }
+
+            /* Partners */
+            #partenaires {
+                padding: 60px 15px !important;
+            }
+
+            #partenaires>.reveal {
+                gap: 12px !important;
+            }
+
+            #partenaires>.reveal>div {
+                padding: 12px 20px !important;
+                font-size: 1.2rem !important;
+                letter-spacing: 1px !important;
+            }
+
+            /* Contact */
+            .contact-grid {
+                position: relative;
+                z-index: 2;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .contact-item {
+                padding: 25px 15px;
+            }
+
+            /* Footer */
+            footer {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+                padding: 30px 15px;
+            }
+
+            .footer-logo {
+                height: 30px;
+            }
+
+            .footer-copy {
+                font-size: 0.7rem;
+            }
+
+            .sep {
+                margin: 0 15px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .hero-content h1.hero-tagline {
+                font-size: clamp(1.8rem, 9vw, 3rem) !important;
+                letter-spacing: 2px !important;
+            }
+
+            .hero-content h2 {
+                font-size: 0.9rem !important;
+            }
+
+            .productions-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+
+            .prod-item {
+                aspect-ratio: 16/9 !important;
+            }
+
+            #partenaires>.reveal>div {
+                padding: 10px 15px !important;
+                font-size: 1rem !important;
+                width: 40%;
+                text-align: center;
+            }
+
+            .service-card {
+                min-height: 220px;
+            }
+
+            .btn-primary,
+            .btn-outline {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- PRELOADER -->
+    <div id="preloader"
+        style="position: fixed; inset: 0; background: var(--darker); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+        <div class="clapper-preloader" style="width: 120px; transform: scale(2);">
+            <div class="clapper-top-preloader"
+                style="transform-origin: bottom left; border: 3px solid var(--white); background: repeating-linear-gradient(45deg, #fff, #fff 10px, #000 10px, #000 20px); height: 20px; margin-bottom: 2px;">
+            </div>
+            <div class="clapper-bottom-preloader"
+                style="border: 3px solid var(--white); background: #000; height: 80px; display: flex; align-items: center; justify-content: center;">
+                <span
+                    style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--white); letter-spacing: 2px;">BVATI</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- FX -->
+    <div class="scanlines"></div>
+
+    <div class="grain"></div>
+
+    <!-- NAV -->
+    <nav id="navbar">
+        <img src="Logo.png" alt="BVATI Productions" class="nav-logo">
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#about">À propos</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#productions">Productions</a></li>
+            <li><a href="#values">Valeurs</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    <!-- HERO -->
+    <div id="hero">
+        <canvas id="three-canvas"></canvas>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-tagline"
+                style="font-family: 'Cinzel', serif; font-size: clamp(3rem, 7vw, 7rem); letter-spacing: 5px; line-height: 1.1; margin-bottom: 20px; text-transform: uppercase; color: #FFFFFF;">
+                BVATI<br><span>PRODUCTIONS</span>
+            </h1>
+            <h2 style="font-size: clamp(1.2rem, 2.5vw, 2rem); line-height: 1.4; margin-bottom: 20px; font-weight: 300;">
+                Agence de production<br><span style="color: var(--gold);">audiovisuelle et cinématographique</span>
+            </h2>
+            <p class="hero-sub" style="margin-bottom: 20px; color: #FFFFFF;">Cinéma &nbsp;·&nbsp; Publicité
+                &nbsp;·&nbsp; Vidéo</p>
+            <div class="hero-cta">
+                <a href="#productions" class="btn-primary magnetic">Nos Productions</a>
+                <a href="#contact" class="btn-outline magnetic">Nous Contacter</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-line"></div>
+        </div>
+    </div>
+
+    <!-- ABOUT -->
+    <section id="about">
+        <div class="about-text reveal">
+            <div class="section-label" style="color:var(--gold)">À propos</div>
+            <h2 class="section-title" style="color:var(--gold)">Notre <br>Engagement</h2>
+            <p>BVATI Productions est une entreprise burkinabè accompagnant oeuvrant dans la production de
+                contenus audiovisuels et cinématographiques.</p>
+            <div
+                style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.03); border-left: 3px solid var(--gold);">
+                <h3 style="color:var(--gold); font-size:1.2rem; margin-bottom:10px; font-family:'Cinzel', serif;">Nos
+                    moyens humains et matériels</h3>
+                <p style="font-size:0.95rem;">"Nous nous appuyons sur une équipe jeune, compétente et dynamique,
+                    ainsi que sur un matériel numérique à la pointe de la technologie, garantissant la qualité de chaque
+                    production."</p>
+            </div>
+            <div class="about-stats">
+                <div class="stat-block magnetic">
+                    <div class="stat-num counter" data-target="10">0</div>
+                    <div class="stat-label">Années d'expérience</div>
+                </div>
+            </div>
+
+        </div>
+        <div class="about-visual reveal reveal-delay-2">
+            <div class="clapper">
+                <div class="clapper-top-part">
+                    <div class="clapper-stripe-bar">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+                </div>
+                <div class="clapper-body">
+                    <div class="clapper-row"><span>Production</span><span>BVATI</span></div>
+                    <div class="clapper-row"><span>Réalisateur</span><span>—</span></div>
+                    <div class="clapper-row"><span>Scène</span><span>01</span></div>
+                    <div class="clapper-row"><span>Prise</span><span>01</span></div>
+                    <div class="clapper-row"><span>Date</span><span>2026</span></div>
+                    <div class="clapper-title">BVATI PRODUCTIONS</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- SERVICES -->
+    <div id="services" style="padding:120px 0;background:rgba(0,0,0,0.4)">
+        <div id="services-inner">
+            <h2 class="section-title" style="color:var(--gold)">Notre<br>Expertise</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-bg"></div>
+                    <div class="service-number">01</div>
+                    <div class="service-content">
+                        <div class="service-line"></div>
+                        <div class="service-name" style="font-size: 1.8rem;">Spot Publicitaire <br>& Billboard</div>
+                        <div class="service-desc">Conception et production de spots publicitaires percutants et de
+                            billboards pour sublimer vos campagnes et marquer les esprits.</div>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-bg"></div>
+                    <div class="service-number">02</div>
+                    <div class="service-content">
+                        <div class="service-line"></div>
+                        <div class="service-name" style="font-size: 1.8rem;">Film Institutionnel <br>& Documentaire
+                        </div>
+                        <div class="service-desc">Réalisation de films documentaires de fond, de publi-reportages et de
+                            films institutionnels pour communiquer vos valeurs avec authenticité.</div>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-bg"></div>
+                    <div class="service-number">03</div>
+                    <div class="service-content">
+                        <div class="service-line"></div>
+                        <div class="service-name" style="font-size: 1.8rem;">Couverture Médiatique <br>& Cinéma</div>
+                        <div class="service-desc">Captation professionnelle de vos événements d'envergure, création de
+                            bandes-annonces captivantes et production de fictions (séries, longs métrages).</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- PRODUCTIONS -->
+    <section id="productions">
+        <div class="productions-header reveal">
+            <h2 class="section-title">Nos productions<br><span style="color:var(--gold)">cinématographiques</span></h2>
+        </div>
+        <div class="productions-tabs reveal">
+            <button class="tab active" onclick="switchTab('series')">Séries</button>
+            <button class="tab" onclick="switchTab('longs')">Longs Métrages</button>
+            <button class="tab" onclick="switchTab('doc')">Documentaire</button>
+        </div>
+
+        <div id="tab-series" class="tab-content active">
+            <div class="productions-grid">
+                <div class="prod-item">
+                    <div class="prod-bg c1"></div>
+                    <div><span class="prod-type">Série RTB</span>
+                        <div class="prod-title">Péché d'Amour</div>
+                    </div>
+                </div>
+                <div class="prod-item">
+                    <div class="prod-bg c2"></div>
+                    <div><span class="prod-type">Série RTB</span>
+                        <div class="prod-title">À Nos Vies</div>
+                    </div>
+                </div>
+                <div class="prod-item">
+                    <div class="prod-bg c3"></div>
+                    <div><span class="prod-type">Série</span>
+                        <div class="prod-title" style="font-size: 1rem;">Infidèles – Les geôles du mariage</div>
+                    </div>
+                </div>
+                <div class="prod-item">
+                    <div class="prod-bg c4"></div>
+                    <div><span class="prod-type">Série</span>
+                        <div class="prod-title">Connivences</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-longs" class="tab-content">
+            <div class="productions-grid">
+                <div class="prod-item">
+                    <div class="prod-bg c6"></div>
+                    <div><span class="prod-type">Long Métrage</span>
+                        <div class="prod-title">Meilleurs Amis</div>
+                    </div>
+                </div>
+                <div class="prod-item">
+                    <div class="prod-bg c7"></div>
+                    <div><span class="prod-type">Long Métrage</span>
+                        <div class="prod-title">L'Aube des Cœurs Brisés</div>
+                    </div>
+                </div>
+                <div class="prod-item">
+                    <div class="prod-bg c8"></div>
+                    <div><span class="prod-type">Long Métrage</span>
+                        <div class="prod-title">Anita</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-doc" class="tab-content">
+            <div class="productions-grid" style="max-width:400px">
+                <div class="prod-item" style="aspect-ratio:16/9">
+                    <div class="prod-bg c5"></div>
+                    <div><span class="prod-type">Documentaire</span>
+                        <div class="prod-title">Wemtenga, Un Cas d'École</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- VALUES -->
+    <div id="values">
+        <div id="values-inner">
+            <div class="section-label">Notre ADN</div>
+            <h2 class="section-title">Mission, Vision<br><span style="color:var(--gold)">& Valeurs</span></h2>
+            <div class="values-grid">
+                <div class="value-card">
+                    <svg class="value-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40"
+                        viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" style="margin: 0 auto 20px auto;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="6"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                    <div class="value-title">Notre Mission</div>
+                    <p class="value-text">Accompagner les partenaires dans la mise en œuvre de contenus audiovisuels qui
+                        correspondent à tout point de vue à leurs attentes.</p>
+                </div>
+                <div class="value-card">
+                    <svg class="value-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40"
+                        viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" style="margin: 0 auto 20px auto;">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <div class="value-title">Notre Vision</div>
+                    <p class="value-text">Offrir de façon continue une production de qualité et innovante qui répond à
+                        vos besoins. Rester à l'écoute de l'environnement audiovisuel pour accroître nos compétences et
+                        vous offrir le meilleur.</p>
+                </div>
+                <div class="value-card">
+                    <svg class="value-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40"
+                        viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" style="margin: 0 auto 20px auto;">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                        </polygon>
+                    </svg>
+                    <div class="value-title">Nos Valeurs</div>
+                    <p class="value-text">Nous encourageons l'esprit d'équipe afin de cultiver une harmonie dans le
+                        travail empreinte d'amitié et de respect.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PARTENAIRES -->
+    <section id="partenaires" style="padding: 100px 0; background: rgba(0,0,0,0.3); overflow: hidden;">
+        <div class="section-label reveal" style="justify-content:center">Ils nous font confiance</div>
+        <h2 class="section-title reveal" style="text-align:center;">Nos <span
+                style="color:var(--gold)">Partenaires</span></h2>
+
+        <style>
+            .partners-track {
+                display: flex;
+                gap: 40px;
+
+                width: max-content;
+                align-items: center;
+                margin-top: 50px;
+            }
+
+            .partners-track:hover {
+                animation-play-state: paused;
+            }
+
+
+
+
+
+            .partner-card {
+                padding: 20px 35px;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(201, 168, 76, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 150px;
+                height: 80px;
+                flex-shrink: 0;
+                transition: all 0.3s ease;
+            }
+
+            .partner-card:hover {
+                border-color: var(--gold);
+                background: rgba(201, 168, 76, 0.08);
+                transform: scale(1.05);
+            }
+
+            .partner-card img {
+                height: 50px;
+                object-fit: contain;
+                filter: brightness(1.1) grayscale(0.3);
+                transition: filter 0.3s ease;
+            }
+
+            .partner-card:hover img {
+                filter: brightness(1.3) grayscale(0);
+            }
+
+            .partner-card-text {
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: 1.4rem;
+                letter-spacing: 2px;
+                color: rgba(255, 255, 255, 0.7);
+                transition: color 0.3s ease;
+            }
+
+            .partner-card:hover .partner-card-text {
+                color: var(--gold);
+            }
+        </style>
+
+        <div class="reveal" style="overflow: hidden;">
+            <div class="partners-track">
+                <!-- First set -->
+                <div class="partner-card"><img src="DAFANI.webp" loading="lazy" alt="Dafani"></div>
+                <div class="partner-card"><img src="RTB.jpeg" loading="lazy" alt="RTB"></div>
+                <div class="partner-card"><span class="partner-card-text">UNFPA</span></div>
+                <div class="partner-card"><img src="rgph.jpeg" loading="lazy" alt="SP/RGPH"></div>
+                <div class="partner-card"><img src="orange.png" loading="lazy" alt="Orange"></div>
+                <div class="partner-card"><img src="cimburkina.jpeg" loading="lazy" alt="CimBurkina"></div>
+                <div class="partner-card"><img src="giz.jpeg" loading="lazy" alt="GIZ"></div>
+                <div class="partner-card"><img src="gilda.jpeg" loading="lazy" alt="Gilda"></div>
+                <div class="partner-card"><span class="partner-card-text">INTERACTIVE</span></div>
+                <!-- Duplicate set for seamless loop -->
+                <div class="partner-card"><img src="DAFANI.webp" loading="lazy" alt="Dafani"></div>
+                <div class="partner-card"><img src="RTB.jpeg" loading="lazy" alt="RTB"></div>
+                <div class="partner-card"><span class="partner-card-text">UNFPA</span></div>
+                <div class="partner-card"><img src="rgph.jpeg" loading="lazy" alt="SP/RGPH"></div>
+                <div class="partner-card"><img src="orange.png" loading="lazy" alt="Orange"></div>
+                <div class="partner-card"><img src="cimburkina.jpeg" loading="lazy" alt="CimBurkina"></div>
+                <div class="partner-card"><img src="giz.jpeg" loading="lazy" alt="GIZ"></div>
+                <div class="partner-card"><img src="gilda.jpeg" loading="lazy" alt="Gilda"></div>
+                <div class="partner-card"><span class="partner-card-text">INTERACTIVE</span></div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- CONTACT -->
+    <section id="contact">
+        <div id="contact-bg-text">BVATI</div>
+        <h2 class="section-title reveal">Travaillons<br><span style="color:var(--gold)">ensemble</span></h2>
+        <div class="contact-grid">
+            <div class="contact-item">
+                <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                    fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    style="margin: 0 auto 12px auto;">
+                    <path
+                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                    </path>
+                </svg>
+                <div class="contact-label">Téléphone / WhatsApp</div>
+                <div class="contact-value">+226 25 36 30 66<br>+226 57 23 52 52</div>
+            </div>
+            <div class="contact-item">
+                <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                    fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    style="margin: 0 auto 12px auto;">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <div class="contact-label">Adresse Physique</div>
+                <div class="contact-value" style="font-size: 0.8rem; line-height: 1.6;">Immeuble Pharmacie
+                    DUNIA<br>Avenue des Arts, 1200 Logements<br>Secteur 23, 02 BP 6195 Ouaga 02</div>
+            </div>
+            <div class="contact-item">
+                <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                    fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    style="margin: 0 auto 12px auto;">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <div class="contact-label">Email</div>
+                <div class="contact-value" style="font-size:0.8rem">bvati.production@gmail.com</div>
+            </div>
+        </div>
+        <a href="mailto:bvati.production@gmail.com" class="btn-primary reveal"
+            style="margin-top:20px;display:inline-block">Envoyer un message</a>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-copy">© 2026 BVATI Productions — Cinéma · Publicité · Vidéo — Burkina Faso<br>
+            <span style="font-size: 0.65rem; color: rgba(255,255,255,0.4); margin-top: 5px; display: inline-block;">RCCM
+                : BF OUA 2017 B0285 &nbsp;|&nbsp; IFU : 00085583A</span>
+        </div>
+        <img src="Logo.png" loading="lazy" alt="BVATI" class="footer-logo">
+    </footer>
+
+
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/split-type"></script>
+    <script>
+        // Hamburger Menu
+        const hamburger = document.getElementById('hamburgerBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('open');
+        });
+
+        // Close menu when clicking a link
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('open');
+            });
+        });
+
+        // Nav scroll
+        const nav = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Old reveal replaced by GSAP
+
+        // Tabs
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+
+        // PART 1 : GLOBAL INIT & HERO ANIMATIONS
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Lenis Smooth Scroll
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                direction: 'vertical',
+                gestureDirection: 'vertical',
+                smooth: true,
+                mouseMultiplier: 1,
+                smoothTouch: false,
+                touchMultiplier: 2,
+            });
+
+            lenis.on('scroll', ScrollTrigger.update);
+            gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+            gsap.ticker.lagSmoothing(0, 0);
+
+
+
+            // Magnetic functionality
+            const magnetics = document.querySelectorAll('.magnetic');
+            magnetics.forEach((magnet) => {
+                magnet.addEventListener('mousemove', function (e) {
+                    const position = magnet.getBoundingClientRect();
+                    const x = e.clientX - position.left - position.width / 2;
+                    const y = e.clientY - position.top - position.height / 2;
+
+                    gsap.to(magnet, { x: x * 0.3, y: y * 0.3, duration: 0.5, ease: "power2.out" });
+                    // Optional move text inside
+                    if (magnet.querySelector('span')) {
+                        gsap.to(magnet.querySelector('span'), { x: x * 0.15, y: y * 0.15, duration: 0.5, ease: "power2.out" });
+                    }
+                });
+                magnet.addEventListener('mouseleave', function () {
+                    gsap.to(magnet, { x: 0, y: 0, duration: 0.5, ease: "power2.out" });
+                    if (magnet.querySelector('span')) {
+                        gsap.to(magnet.querySelector('span'), { x: 0, y: 0, duration: 0.5, ease: "power2.out" });
+                    }
+                });
+            });
+
+
+            // PART 2: CONTENT ANIMATIONS (Parallax, Clapper, Reveals, Counters)
+
+            // 1. Advance Reveals (3D and Masks)
+            gsap.utils.toArray('.reveal').forEach((elem) => {
+                gsap.fromTo(elem,
+                    { y: 80, opacity: 0, rotationX: -15, transformOrigin: 'top center' },
+                    {
+                        scrollTrigger: {
+                            trigger: elem,
+                            start: "top 85%",
+                            toggleActions: "play none none reverse",
+                        },
+                        y: 0, opacity: 1, rotationX: 0, duration: 1.2, ease: "power3.out"
+                    }
+                );
+            });
+
+            // 2. clapperboard animation
+            const clapperTop = document.querySelector('.clapper-top-part');
+            if (clapperTop) {
+                gsap.fromTo(clapperTop,
+                    { rotation: -25 },
+                    {
+                        rotation: 0,
+                        ease: "bounce.out",
+                        scrollTrigger: {
+                            trigger: ".clapper",
+                            start: "top 80%",
+                            end: "top 50%",
+                            scrub: 1
+                        }
+                    }
+                );
+            }
+
+            // 3. Counter Animation (Dynamic Stats)
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target'));
+                gsap.to(counter, {
+                    innerHTML: target,
+                    duration: 2.5,
+                    snap: { innerHTML: 1 },
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: counter,
+                        start: "top 90%",
+                        toggleActions: "play none none none"
+                    },
+                    onUpdate: function () {
+                        counter.innerHTML = Math.round(this.targets()[0].innerHTML) + "+";
+                    }
+                });
+            });
+
+            // 4. Parallax strongly applied to Portfolio Images (.prod-bg)
+            gsap.utils.toArray('.prod-bg').forEach((bg) => {
+                // Ensure bg is taller than container for parallax
+                bg.style.height = "130%";
+                bg.style.top = "-15%";
+
+                gsap.to(bg, {
+                    yPercent: 20,
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: bg.parentElement,
+                        start: "top bottom",
+                        end: "bottom top",
+                        scrub: true
+                    }
+                });
+            });
+
+            // 5. Service Cards Stagger and Tilt (3D hover)
+            const serviceCards = document.querySelectorAll('.service-card');
+            serviceCards.forEach((card, i) => {
+
+
+
+
+                // Setup tilt effect using magnetic JS pattern
+                card.addEventListener('mousemove', function (e) {
+                    const position = card.getBoundingClientRect();
+                    const x = (e.clientX - position.left - position.width / 2) / (position.width / 2);
+                    const y = (e.clientY - position.top - position.height / 2) / (position.height / 2);
+
+                    gsap.to(card, { rotationY: x * 8, rotationX: -y * 8, duration: 0.5, ease: "power2.out", transformPerspective: 1000 });
+                });
+                card.addEventListener('mouseleave', function () {
+                    gsap.to(card, { rotationY: 0, rotationX: 0, duration: 0.5, ease: "power2.out" });
+                });
+            });
+
+
+
+            // PART 3: FOOTER, CONTACT, PARTNERS
+
+            // Contact Big Text Scrub
+            const contactBgText = document.getElementById('contact-bg-text');
+            if (contactBgText) {
+                gsap.fromTo(contactBgText,
+                    { xPercent: 20 },
+                    {
+                        xPercent: -20,
+                        scrollTrigger: {
+                            trigger: "#contact",
+                            start: "top bottom",
+                            end: "bottom top",
+                            scrub: 1.5
+                        }
+                    }
+                );
+            }
+
+            // Body Background tint variation
+            gsap.to("body", {
+                backgroundColor: "#020406", // slight dark blue/gold hint
+                scrollTrigger: {
+                    trigger: "#contact",
+                    start: "top center",
+                    end: "bottom bottom",
+                    scrub: true
+                }
+            });
+
+            // Partners Track Infinite Scroll with GSAP
+            const partnersTrack = document.querySelector('.partners-track');
+            if (partnersTrack) {
+                // Determine width to move
+                // we have duplicate items for seamless loop
+                gsap.to(partnersTrack, {
+                    xPercent: -50,
+                    ease: "none",
+                    duration: 30, // base speed
+                    repeat: -1
+                });
+
+                // Acceleration effect on scroll
+                // A bit advanced: we speed up timescale when scrolling.
+                let partnerTween = gsap.getTweensOf(partnersTrack)[0];
+                ScrollTrigger.create({
+                    trigger: "#partenaires",
+                    start: "top bottom",
+                    end: "bottom top",
+                    onUpdate: self => {
+                        let vel = Math.abs(self.getVelocity());
+                        let targetTimeScale = 1 + vel / 500;
+                        gsap.to(partnerTween, { timeScale: targetTimeScale, duration: 0.2, overwrite: true });
+                        gsap.to(partnerTween, { timeScale: 1, duration: 1, delay: 0.2, overwrite: "auto" });
+                    }
+                });
+            }
+
+            // Nav Links magnetic / hover
+            const navItems = document.querySelectorAll('.nav-links li a');
+            navItems.forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    gsap.to(item, { scale: 1.1, color: "var(--gold)", duration: 0.3 });
+                });
+                item.addEventListener('mouseleave', () => {
+                    gsap.to(item, { scale: 1, color: "var(--white)", duration: 0.3 });
+                });
+            });
+
+            // Contact Items reveal staggered
+            const contactItems = document.querySelectorAll('.contact-item');
+            if (contactItems.length > 0) {
+                gsap.fromTo(contactItems,
+                    { y: 50, opacity: 0, scale: 0.9 },
+                    {
+                        y: 0, opacity: 1, scale: 1,
+                        duration: 0.8,
+                        stagger: 0.2,
+                        ease: "back.out(1.5)",
+                        scrollTrigger: {
+                            trigger: ".contact-grid",
+                            start: "top 80%",
+                            toggleActions: "play none none reverse"
+                        }
+                    }
+                );
+            }
+
+            // Hero Animations Function
+            function startHeroAnimations() {
+                const tagline = document.querySelector('.hero-tagline');
+                if (tagline) {
+                    tagline.style.visibility = 'visible';
+                    const splitTagline = new SplitType(tagline, { types: 'lines, words, chars' });
+
+                    const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+                    tl.fromTo(splitTagline.chars,
+                        { y: 50, opacity: 0, rotationX: -90 },
+                        { y: 0, opacity: 1, rotationX: 0, duration: 1.2, stagger: 0.03 }
+                    )
+                        .fromTo(document.querySelector('.hero-sub'),
+                            { y: 20, opacity: 0 },
+                            { y: 0, opacity: 1, duration: 1 },
+                            "-=0.6"
+                        )
+                        .fromTo(document.querySelector('.hero-cta'),
+                            { y: 20, opacity: 0 },
+                            { y: 0, opacity: 1, duration: 1 },
+                            "-=0.8"
+                        )
+                        .fromTo(document.querySelector('.scroll-indicator'),
+                            { opacity: 0 },
+                            { opacity: 1, duration: 1 },
+                            "-=0.5"
+                        );
+                }
+            }
+
+            // Preloader Animation
+            const preloader = document.getElementById('preloader');
+            const clapperTopPre = document.querySelector('.clapper-top-preloader');
+
+            if (preloader && clapperTopPre) {
+                const masterTl = gsap.timeline({
+                    onComplete: () => {
+                        gsap.to(preloader, {
+                            opacity: 0,
+                            duration: 0.4,
+                            ease: "power2.out",
+                            onComplete: () => {
+                                preloader.style.display = 'none';
+                            }
+                        });
+                        startHeroAnimations();
+                    }
+                });
+
+                masterTl.fromTo(clapperTopPre,
+                    { rotation: -45 },
+                    { rotation: 0, duration: 0.15, ease: "power4.in" }
+                )
+                    .to({}, { duration: 0.1 }); // small pause
+            } else {
+                startHeroAnimations();
+            }
+        });
+
+        // Three.js — Cinematic Film Strips
+        (function () {
+            const canvas = document.getElementById('three-canvas');
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x080808, 0.012); // darker background fog
+
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 40;
+
+            // Projector Dust Particles
+            const count = 1000;
+            const geo = new THREE.BufferGeometry();
+            const pos = new Float32Array(count * 3);
+            for (let i = 0; i < count; i++) {
+                pos[i * 3] = (Math.random() - 0.5) * 120;
+                pos[i * 3 + 1] = (Math.random() - 0.5) * 120;
+                pos[i * 3 + 2] = (Math.random() - 0.5) * 100;
+            }
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ color: 0xc9a84c, size: 0.15, transparent: true, opacity: 0.5 });
+            const particles = new THREE.Points(geo, mat);
+            scene.add(particles);
+
+            // Generate Film Strip Texture
+            function createFilmTexture() {
+                const c = document.createElement('canvas');
+                c.width = 256;
+                c.height = 1024;
+                const ctx = c.getContext('2d');
+                ctx.fillStyle = '#020202';
+                ctx.fillRect(0, 0, 256, 1024);
+                // Holes
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                for (let i = 0; i < 30; i++) {
+                    ctx.fillRect(10, i * 35 + 10, 15, 20);
+                    ctx.fillRect(231, i * 35 + 10, 15, 20);
+                }
+                // Frames
+                ctx.fillStyle = 'rgba(201, 168, 76, 0.05)';
+                for (let i = 0; i < 6; i++) {
+                    ctx.fillRect(40, i * 170 + 10, 176, 140);
+                }
+                const tex = new THREE.CanvasTexture(c);
+                tex.wrapS = THREE.RepeatWrapping;
+                tex.wrapT = THREE.RepeatWrapping;
+                tex.repeat.set(1, 4);
+                return tex;
+            }
+
+            const filmTex = createFilmTexture();
+            const strips = [];
+
+            for (let i = 0; i < 8; i++) {
+                const stripGeo = new THREE.PlaneGeometry(12, 150, 5, 30);
+                const posAttr = stripGeo.attributes.position;
+                for (let j = 0; j < posAttr.count; j++) {
+                    const y = posAttr.getY(j);
+                    const z = Math.sin(y * 0.08 + i) * 3;
+                    posAttr.setZ(j, z);
+                }
+                stripGeo.computeVertexNormals();
+
+                const stripMat = new THREE.MeshBasicMaterial({
+                    map: filmTex,
+                    transparent: true,
+                    opacity: 0.3 + Math.random() * 0.4,
+                    side: THREE.DoubleSide,
+                    depthWrite: false
+                });
+
+                const strip = new THREE.Mesh(stripGeo, stripMat);
+                strip.position.x = (Math.random() - 0.5) * 80;
+                strip.position.y = (Math.random() - 0.5) * 40;
+                strip.position.z = (Math.random() - 0.5) * 60 - 15;
+
+                strip.rotation.x = Math.random() * Math.PI * 0.4 - Math.PI * 0.2;
+                strip.rotation.y = (Math.random() - 0.5) * Math.PI * 0.8;
+                strip.rotation.z = (Math.random() - 0.5) * Math.PI * 0.4;
+
+                strip.userData = {
+                    speedY: 0.005 + Math.random() * 0.015,
+                    floatSpeedX: (Math.random() - 0.5) * 0.005,
+                    floatSpeedY: (Math.random() - 0.5) * 0.005
+                };
+
+                scene.add(strip);
+                strips.push(strip);
+            }
+
+            let mouse = { x: 0, y: 0 };
+            document.addEventListener('mousemove', e => {
+                mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouse.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Disable rendering if user scrolls past the hero section
+                if (window.scrollY > window.innerHeight) return;
+
+                particles.position.y += 0.08;
+                if (particles.position.y > 60) particles.position.y = -60;
+
+                camera.position.x += (mouse.x * 8 - camera.position.x) * 0.05;
+                camera.position.y += (mouse.y * 8 + 5 - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+
+                strips.forEach(strip => {
+                    strip.material.map.offset.y -= strip.userData.speedY; // roll strip
+                    strip.rotation.x += strip.userData.floatSpeedX;
+                    strip.rotation.y += strip.userData.floatSpeedY;
+                });
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        })();
+    </script>
+</body>
+
+</html>
