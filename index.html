@@ -1234,10 +1234,10 @@
 <body>
     <!-- PRELOADER -->
     <div id="preloader"
-        style="position: fixed; inset: 0; background: var(--darker); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <div class="clapper-preloader" style="width: 120px; transform: scale(2);">
+        style="position: fixed; inset: 0; background: var(--darker); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; will-change: opacity, transform;">
+        <div class="clapper-preloader" style="width: 120px; transform: scale(2) translateZ(0); will-change: transform;">
             <div class="clapper-top-preloader"
-                style="transform-origin: bottom left; border: 3px solid var(--white); background: repeating-linear-gradient(45deg, #fff, #fff 10px, #000 10px, #000 20px); height: 20px; margin-bottom: 2px;">
+                style="transform-origin: bottom left; border: 3px solid var(--white); background: repeating-linear-gradient(45deg, #fff, #fff 10px, #000 10px, #000 20px); height: 20px; margin-bottom: 2px; will-change: transform; transform: translateZ(0);">
             </div>
             <div class="clapper-bottom-preloader"
                 style="border: 3px solid var(--white); background: #000; height: 80px; display: flex; align-items: center; justify-content: center;">
@@ -1956,25 +1956,28 @@
             const clapperTopPre = document.querySelector('.clapper-top-preloader');
 
             if (preloader && clapperTopPre) {
-                const masterTl = gsap.timeline({
-                    onComplete: () => {
-                        gsap.to(preloader, {
-                            opacity: 0,
-                            duration: 0.4,
-                            ease: "power2.out",
-                            onComplete: () => {
-                                preloader.style.display = 'none';
-                            }
-                        });
-                        startHeroAnimations();
-                    }
-                });
+                // Delay slightly to give WebGL time to compile shaders before animating
+                setTimeout(() => {
+                    const masterTl = gsap.timeline({
+                        onComplete: () => {
+                            gsap.to(preloader, {
+                                opacity: 0,
+                                duration: 0.5,
+                                ease: "power2.inOut",
+                                onComplete: () => {
+                                    preloader.style.display = 'none';
+                                }
+                            });
+                            startHeroAnimations();
+                        }
+                    });
 
-                masterTl.fromTo(clapperTopPre,
-                    { rotation: -45 },
-                    { rotation: 0, duration: 0.15, ease: "power4.in" }
-                )
-                    .to({}, { duration: 0.1 }); // small pause
+                    masterTl.fromTo(clapperTopPre,
+                        { rotationZ: -45 },
+                        { rotationZ: 0, duration: 0.2, ease: "power3.in", force3D: true }
+                    )
+                        .to({}, { duration: 0.15 }); // small pause
+                }, 100);
             } else {
                 startHeroAnimations();
             }
